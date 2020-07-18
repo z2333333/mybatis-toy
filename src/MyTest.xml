@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans">
+
+    <bean name="HelloWorld" class="com.xxp.HelloWord">
+        <property name="first" value="Gob bless you!"></property>
+        <property name="second" value="ComeBaby!"></property>
+    </bean>
+
+</beans>

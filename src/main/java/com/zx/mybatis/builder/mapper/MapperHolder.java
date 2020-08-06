@@ -9,14 +9,16 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author zx
  * @date 2020/6/11 14:02
+ * Mapper持有器:对应xml文件级别
  */
 public class MapperHolder {
     private final String mapperId;
     private Object mapperProxy;
-    /**  **/
+    /** 存放解析后的mapper方法 **/
     private final Map<Method, MapperMethod> methodCache = new ConcurrentHashMap<>();
+
     private final Map<String,ResultMap> resultMap = new ConcurrentHashMap<>();
-    private final Map<String,MapperStatement> statementMap = new ConcurrentHashMap<>();
+//    private final Map<String,MapperStatement> statementMap = new ConcurrentHashMap<>();
 
     public <T> T getMapper(Class<T> type) {
         return (T) mapperProxy;
@@ -45,7 +47,7 @@ public class MapperHolder {
         this.resultMap.put(key, resultMap);
     }
 
-    public void addStatementMap(String key,MapperStatement mapperStatement){
-        this.statementMap.put(key, mapperStatement);
-    }
+//    public void addStatementMap(String key,MapperStatement mapperStatement){
+//        this.statementMap.put(key, mapperStatement);
+//    }
 }

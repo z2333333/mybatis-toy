@@ -1,10 +1,12 @@
 package com.zx.mybatis.builder.mapper;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.mysql.cj.util.StringUtils;
 import com.zx.mybatis.builder.XMLResolveAssistant;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +16,7 @@ import java.util.List;
  */
 public class XMLMapperResolve {
     private final MapperHolder mapperHolder;
+    private final MapperBuilderAssistant mapperBuilderAssistant = new MapperBuilderAssistant();
     private XMLResolveAssistant xmlResolveAssistant = new XMLResolveAssistant();
 
     public XMLMapperResolve(String name,MapperHolder mapperHolder) {
@@ -80,16 +83,41 @@ public class XMLMapperResolve {
     }
 
     protected void sqlStatement(){
+        Class<?> aClass = mapperHolder.getMapper(null).getClass();
         for (SqlCommandType value : SqlCommandType.values()) {
             String type = value.name().toLowerCase();
-            Element targetElement = xmlResolveAssistant.getTargetElementTop(type);
-            sqlCommon(targetElement);
+            NodeList elements = xmlResolveAssistant.getTargetElements(type);
+            if (elements != null && elements.getLength() > 0) {
+                for (int i = 0; i < elements.getLength(); i++) {
+                    sqlCommon((Element) elements.item(i),aClass);
+                }
+            }
         }
     }
 
-    private void sqlCommon(Element resultElement){
+    private void sqlCommon(Element resultElement, Class<?> aClass) {
         String id = resultElement.getAttribute("id");
+        if (StringUtils.isNullOrEmpty(id)) {
+            throw new RuntimeException("XML中sql标签ID不能为空");
+        }
+
         String parameterType = resultElement.getAttribute("parameterType");
         String resultMap = resultElement.getAttribute("resultMap");
+
+        //匹配MapperMethod  mapperHolder.getMapper(RoleMapper.class)
+        for (Method method : aClass.getMethods()) {
+            if (method.getName().equals(id) && !mapperHolder.getMethodCache().containsKey(method)) {
+                MapperStatement mapperStatement = new MapperStatement(id,parameterType,resultMap);
+                MapperMethod mapperMethod = new MapperMethod(mapperStatement);
+                mapperHolder.getMethodCache().put(method, mapperMethod);
+
+                //返回值类型绑定
+                //用建造模式,最终的组合和校验在build.build完成
+                String parseSql = mapperBuilderAssistant.parseSql(resultElement.getTextContent());
+                mapperStatement.setOrginSql(parseSql);
+            }
+        }
     }
+
+
 }

@@ -6,8 +6,8 @@ package com.zx.mybatis.mapper;
  * @date 2020/3/5 11:26
  */
 public interface RoleMapper {
-    public Role getRole(Long id);
-    public Role findRole(String roleName);
-    public int deleteRole(Long id);
-    public int insertRole(Role role);
+    Role getRole(Long id);
+    Role findRole(String roleName);
+    int deleteRole(Long id);
+    int insertRole(Role role);
 }

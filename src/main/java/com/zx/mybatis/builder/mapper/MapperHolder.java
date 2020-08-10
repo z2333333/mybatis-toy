@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class MapperHolder {
     private final String mapperId;
+    /** 被代理的mapper对象 **/
     private Object mapperProxy;
     /** 存放解析后的mapper方法 **/
     private final Map<Method, MapperMethod> methodCache = new ConcurrentHashMap<>();

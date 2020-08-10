@@ -3,6 +3,9 @@ package com.zx.mybatis.builder.mapper;
 import cn.hutool.core.util.ObjectUtil;
 import com.mysql.cj.util.StringUtils;
 import com.zx.mybatis.builder.XMLResolveAssistant;
+import com.zx.mybatis.mapping.ParameterMapping;
+import com.zx.mybatis.mapping.TypeAliasRegistry;
+import com.zx.mybatis.mapping.TypeHandlerRegistry;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -17,12 +20,16 @@ import java.util.List;
 public class XMLMapperResolve {
     private final MapperHolder mapperHolder;
     private final MapperBuilderAssistant mapperBuilderAssistant = new MapperBuilderAssistant();
+    private final TypeHandlerRegistry typeHandlerRegistry;
+    private final TypeAliasRegistry typeAliasRegistry;
     private XMLResolveAssistant xmlResolveAssistant = new XMLResolveAssistant();
 
-    public XMLMapperResolve(String name,MapperHolder mapperHolder) {
+    public XMLMapperResolve(String name,MapperHolder mapperHolder,MapperManager mapperManager) {
         String xmlResource = "mapper/"+ name + ".xml";
         xmlResolveAssistant.createDocument(xmlResource);
         this.mapperHolder = mapperHolder;
+        this.typeHandlerRegistry = mapperManager.getTypeHandlerRegistry();
+        this.typeAliasRegistry = mapperManager.getTypeAliasRegistry();
     }
 
     public void doParse(MapperHolder mapperHolder) {
@@ -109,12 +116,22 @@ public class XMLMapperResolve {
             if (method.getName().equals(id) && !mapperHolder.getMethodCache().containsKey(method)) {
                 MapperStatement mapperStatement = new MapperStatement(id,parameterType,resultMap);
                 MapperMethod mapperMethod = new MapperMethod(mapperStatement);
-                mapperHolder.getMethodCache().put(method, mapperMethod);
-
+                if (!StringUtils.isNullOrEmpty(parameterType)) {
+                    //参数类型不为空则直接设置类型
+                    //将字符串表示的参数类型解析成对应的Java类
+                    Class<?> resolveAlias = typeAliasRegistry.resolveAlias(parameterType);
+                    mapperStatement.setParameterTypeClass(resolveAlias);
+                    ParameterMapping.Builder builder = new ParameterMapping.Builder(typeHandlerRegistry);
+                    //todo 先默认为基本类型,当参数类型为自定义对象时要解析对象中的所有属性
+                    builder.javaType(resolveAlias);
+                    mapperStatement.addParameterMapping(builder.build());
+                }
                 //返回值类型绑定
                 //用建造模式,最终的组合和校验在build.build完成
                 String parseSql = mapperBuilderAssistant.parseSql(resultElement.getTextContent());
                 mapperStatement.setOrginSql(parseSql);
+
+                mapperHolder.getMethodCache().put(method, mapperMethod);
             }
         }
     }

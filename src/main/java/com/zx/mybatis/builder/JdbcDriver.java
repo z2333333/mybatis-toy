@@ -17,7 +17,6 @@ public class JdbcDriver extends AbstractDateBaseDriver implements DataBaseDriver
     public void iniDriver() {
         try {
             this.connection = DriverManager.getConnection(url, userName, passWord);
-            String name = "";
         } catch (SQLException sqlException) {
             sqlException.printStackTrace();
         }

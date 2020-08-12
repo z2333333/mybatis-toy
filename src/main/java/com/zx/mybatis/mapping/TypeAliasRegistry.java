@@ -9,9 +9,7 @@ import java.math.BigInteger;
 import java.sql.ResultSet;
 import java.util.*;
 
-/**
- * @author Clinton Begin
- */
+
 
 /**
  * 类型别名注册机

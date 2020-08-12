@@ -4,9 +4,7 @@ import java.sql.Types;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author Clinton Begin
- */
+
 
 /**
  * JDBC类型枚举

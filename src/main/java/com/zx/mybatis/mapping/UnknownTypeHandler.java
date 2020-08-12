@@ -6,9 +6,7 @@ import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author Clinton Begin
- */
+
 public class UnknownTypeHandler extends BaseTypeHandler<Object> {
 
   private static final ObjectTypeHandler OBJECT_TYPE_HANDLER = new ObjectTypeHandler();

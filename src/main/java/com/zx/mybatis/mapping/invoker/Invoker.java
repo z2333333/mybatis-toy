@@ -2,9 +2,7 @@ package com.zx.mybatis.mapping.invoker;
 
 import java.lang.reflect.InvocationTargetException;
 
-/**
- * @author Clinton Begin
- */
+
 
 /**
  * 调用者

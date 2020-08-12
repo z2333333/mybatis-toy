@@ -6,11 +6,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
 /**
- * @author Clinton Begin
- * @author Eduardo Macarron
- */
-
-/**
  * 映射器代理，代理模式
  *
  */

@@ -7,9 +7,7 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.*;
 
-/**
- * @author Clinton Begin
- */
+
 
 /**
  * 类型处理器注册机

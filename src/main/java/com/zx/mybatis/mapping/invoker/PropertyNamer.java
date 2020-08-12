@@ -2,9 +2,7 @@ package com.zx.mybatis.mapping.invoker;
 
 import java.util.Locale;
 
-/**
- * @author Clinton Begin
- */
+
 
 /**
  * 属性命名器

@@ -12,9 +12,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
 
-/**
- * @author Clinton Begin
- */
+
 
 /**
  * 原类

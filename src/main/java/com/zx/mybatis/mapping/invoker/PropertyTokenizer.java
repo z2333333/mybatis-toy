@@ -2,9 +2,7 @@ package com.zx.mybatis.mapping.invoker;
 
 import java.util.Iterator;
 
-/**
- * @author Clinton Begin
- */
+
 
 /**
  * 属性分解为标记，迭代子模式

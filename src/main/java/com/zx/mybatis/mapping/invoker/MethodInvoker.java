@@ -3,9 +3,7 @@ package com.zx.mybatis.mapping.invoker;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-/**
- * @author Clinton Begin
- */
+
 
 /**
  * 方法调用者

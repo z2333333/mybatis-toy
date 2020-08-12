@@ -143,9 +143,6 @@ public final class TypeHandlerRegistry {
   }
 
   private <T> void register(Type javaType, TypeHandler<? extends T> typeHandler) {
-	//MappedJdbcTypes的注解的用法可参考测试类StringTrimmingTypeHandler
-	//另外在文档中也提到，这是扩展自定义的typeHandler所需要的
-	//(你可以重写类型处理器或创建你自己的类型处理器来处理不支持的或非标准的类型)
 //    MappedJdbcTypes mappedJdbcTypes = typeHandler.getClass().getAnnotation(MappedJdbcTypes.class);
 //    if (mappedJdbcTypes != null) {
 //      for (JdbcType handledJdbcType : mappedJdbcTypes.value()) {
@@ -157,6 +154,7 @@ public final class TypeHandlerRegistry {
 //    } else {
 //      register(javaType, null, typeHandler);
 //    }
+      register(javaType, null, typeHandler);
   }
 
   public <T> void register(TypeReference<T> javaTypeReference, TypeHandler<? extends T> handler) {
@@ -235,8 +233,6 @@ public final class TypeHandlerRegistry {
     }
   }
 
-  // scan
-
   public void register(String packageName) {
     ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<Class<?>>();
     resolverUtil.find(new ResolverUtil.IsA(TypeHandler.class), packageName);
@@ -251,9 +247,6 @@ public final class TypeHandlerRegistry {
 
   // get information
 
-  /**
-   * @since 3.2.2
-   */
   public Collection<TypeHandler<?>> getTypeHandlers() {
     return Collections.unmodifiableCollection(ALL_TYPE_HANDLERS_MAP.values());
   }

@@ -57,4 +57,8 @@ public class MapperBuilderAssistant {
     public List<String> getOrgSqlParameter() {
         return orgSqlParameter;
     }
+
+    public void resetOrgSqlParameter() {
+        orgSqlParameter.clear();
+    }
 }

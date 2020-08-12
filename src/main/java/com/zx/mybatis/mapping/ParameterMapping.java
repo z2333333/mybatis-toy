@@ -3,7 +3,7 @@ package com.zx.mybatis.mapping;
 /**
  * @author zx
  * @date 2020/8/5 17:55
- * 映射参数到sql
+ * 用于执行sql时对参数进行映射
  */
 public class ParameterMapping {
     //建造者模式
@@ -21,12 +21,19 @@ public class ParameterMapping {
         }
 
         public ParameterMapping build() {
+            resolveTypeHandler();
             return parameterMapping;
         }
 
         public Builder javaType(Class<?> javaType) {
             parameterMapping.javaType = javaType;
             return this;
+        }
+
+        private void resolveTypeHandler() {
+            if (parameterMapping.typeHandler == null && parameterMapping.javaType != null) {
+                parameterMapping.typeHandler = parameterMapping.typeHandlerRegistry.getTypeHandler(parameterMapping.javaType, parameterMapping.jdbcType);
+            }
         }
     }
 }

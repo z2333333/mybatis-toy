@@ -3,6 +3,7 @@ package com.zx.mybatis.builder.mapper;
 import cn.hutool.core.util.ObjectUtil;
 import com.mysql.cj.util.StringUtils;
 import com.zx.mybatis.builder.XMLResolveAssistant;
+import com.zx.mybatis.mapping.MetaClass;
 import com.zx.mybatis.mapping.ParameterMapping;
 import com.zx.mybatis.mapping.TypeAliasRegistry;
 import com.zx.mybatis.mapping.TypeHandlerRegistry;
@@ -116,21 +117,38 @@ public class XMLMapperResolve {
             if (method.getName().equals(id) && !mapperHolder.getMethodCache().containsKey(method)) {
                 MapperStatement mapperStatement = new MapperStatement(id,parameterType,resultMap);
                 MapperMethod mapperMethod = new MapperMethod(mapperStatement);
-                if (!StringUtils.isNullOrEmpty(parameterType)) {
-                    //参数类型不为空则直接设置类型
-                    //将字符串表示的参数类型解析成对应的Java类
-                    Class<?> resolveAlias = typeAliasRegistry.resolveAlias(parameterType);
-                    mapperStatement.setParameterTypeClass(resolveAlias);
-                    ParameterMapping.Builder builder = new ParameterMapping.Builder(typeHandlerRegistry);
-                    //todo 先默认为基本类型,当参数类型为自定义对象时要解析对象中的所有属性
-                    builder.javaType(resolveAlias);
-                    mapperStatement.addParameterMapping(builder.build());
-                }
                 //返回值类型绑定
                 //用建造模式,最终的组合和校验在build.build完成
                 String parseSql = mapperBuilderAssistant.parseSql(resultElement.getTextContent());
                 mapperStatement.setOrginSql(parseSql);
+                for (String orgSqlParameter : mapperBuilderAssistant.getOrgSqlParameter()) {
+                    Class<?> propertyType = null;
+                    //将字符串表示的参数类型解析成对应的Java类
+                    Class<?> resolveAlias = typeAliasRegistry.resolveAlias(parameterType);
+                    mapperStatement.setParameterTypeClass(resolveAlias);
+                    if (!StringUtils.isNullOrEmpty(parameterType)) {
+                        //分为基本类型和自定义类型两种情况
+                        if (typeHandlerRegistry.hasTypeHandler(resolveAlias)) {
+                            propertyType = resolveAlias;
+                        } else if (parameterType != null) {
+                            //实例化parameterType,判断是否有对应字段的getter方法
+                            MetaClass metaClass = MetaClass.forClass(resolveAlias);
+                            if (metaClass.hasGetter(orgSqlParameter)) {
+                                //propertyType类型为该字段在自定义类中的字段类型
+                                propertyType = metaClass.getGetterType(orgSqlParameter);
+                            } else {
+                                propertyType = Object.class;
+                            }
+                        }
+                    }else {
+                        propertyType = Object.class;
+                    }
 
+                    //ParameterMapping用于执行sql时对参数进行映射
+                    ParameterMapping.Builder builder = new ParameterMapping.Builder(typeHandlerRegistry);
+                    builder.javaType(propertyType);
+                    mapperStatement.addParameterMapping(builder.build());
+                }
                 mapperHolder.getMethodCache().put(method, mapperMethod);
             }
         }

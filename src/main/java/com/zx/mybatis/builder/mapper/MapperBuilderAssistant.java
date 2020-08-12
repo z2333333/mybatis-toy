@@ -1,5 +1,8 @@
 package com.zx.mybatis.builder.mapper;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author zx
  * @date 2020/7/28 15:42
@@ -7,6 +10,8 @@ package com.zx.mybatis.builder.mapper;
 public class MapperBuilderAssistant {
     private final String openToken = "#{";
     private final String closeToken = "}";
+
+    private final List<String> orgSqlParameter = new ArrayList<>();
 
     public String parseSql(String text) {
         StringBuilder builder = new StringBuilder();
@@ -35,6 +40,7 @@ public class MapperBuilderAssistant {
                         String content = new String(src, offset, end - offset);
                         //得到一对大括号里的字符串后，调用handler.handleToken,比如替换变量这种功能
                         //builder.append(handler.handleToken(content));
+                        orgSqlParameter.add(content);
                         builder.append("?");
                         offset = end + closeToken.length();
                     }
@@ -46,5 +52,13 @@ public class MapperBuilderAssistant {
             }
         }
         return builder.toString();
+    }
+
+    public List<String> getOrgSqlParameter() {
+        return orgSqlParameter;
+    }
+
+    public void resetOrgSqlParameter() {
+        orgSqlParameter.clear();
     }
 }

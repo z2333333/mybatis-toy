@@ -3,6 +3,10 @@ package com.zx.mybatis.builder.mapper;
 import cn.hutool.core.util.ObjectUtil;
 import com.mysql.cj.util.StringUtils;
 import com.zx.mybatis.builder.XMLResolveAssistant;
+import com.zx.mybatis.mapping.MetaClass;
+import com.zx.mybatis.mapping.ParameterMapping;
+import com.zx.mybatis.mapping.TypeAliasRegistry;
+import com.zx.mybatis.mapping.TypeHandlerRegistry;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -17,12 +21,16 @@ import java.util.List;
 public class XMLMapperResolve {
     private final MapperHolder mapperHolder;
     private final MapperBuilderAssistant mapperBuilderAssistant = new MapperBuilderAssistant();
+    private final TypeHandlerRegistry typeHandlerRegistry;
+    private final TypeAliasRegistry typeAliasRegistry;
     private XMLResolveAssistant xmlResolveAssistant = new XMLResolveAssistant();
 
-    public XMLMapperResolve(String name,MapperHolder mapperHolder) {
-        String xmlResource = "mapper/"+ name + ".xml";
+    public XMLMapperResolve(String name, MapperHolder mapperHolder, MapperManager mapperManager) {
+        String xmlResource = "mapper/" + name + ".xml";
         xmlResolveAssistant.createDocument(xmlResource);
         this.mapperHolder = mapperHolder;
+        this.typeHandlerRegistry = mapperManager.getTypeHandlerRegistry();
+        this.typeAliasRegistry = mapperManager.getTypeAliasRegistry();
     }
 
     public void doParse(MapperHolder mapperHolder) {
@@ -38,7 +46,7 @@ public class XMLMapperResolve {
         //配置sql
     }
 
-    protected void resultMapElements(NodeList resultMaps){
+    protected void resultMapElements(NodeList resultMaps) {
         if (ObjectUtil.isEmpty(resultMaps)) {
             return;
         }
@@ -78,24 +86,24 @@ public class XMLMapperResolve {
                 resultMap.setResultMappingList(resultMappingList);
             }
 
-            mapperHolder.addResultMap(resultMapId,resultMap);
+            mapperHolder.addResultMap(resultMapId, resultMap);
         }
     }
 
-    protected void sqlStatement(){
-        Class<?> aClass = mapperHolder.getMapper(null).getClass();
+    protected void sqlStatement() {
         for (SqlCommandType value : SqlCommandType.values()) {
             String type = value.name().toLowerCase();
             NodeList elements = xmlResolveAssistant.getTargetElements(type);
             if (elements != null && elements.getLength() > 0) {
                 for (int i = 0; i < elements.getLength(); i++) {
-                    sqlCommon((Element) elements.item(i),aClass);
+                    sqlCommon((Element) elements.item(i));
                 }
             }
         }
     }
 
-    private void sqlCommon(Element resultElement, Class<?> aClass) {
+    //解析当前xml的每个sql块,为块中待注入参数设置ParameterMapping
+    private void sqlCommon(Element resultElement) {
         String id = resultElement.getAttribute("id");
         if (StringUtils.isNullOrEmpty(id)) {
             throw new RuntimeException("XML中sql标签ID不能为空");
@@ -103,21 +111,56 @@ public class XMLMapperResolve {
 
         String parameterType = resultElement.getAttribute("parameterType");
         String resultMap = resultElement.getAttribute("resultMap");
+        Class<?> resolveAlias = typeAliasRegistry.resolveAlias(parameterType);
 
-        //匹配MapperMethod  mapperHolder.getMapper(RoleMapper.class)
-        for (Method method : aClass.getMethods()) {
-            if (method.getName().equals(id) && !mapperHolder.getMethodCache().containsKey(method)) {
-                MapperStatement mapperStatement = new MapperStatement(id,parameterType,resultMap);
-                MapperMethod mapperMethod = new MapperMethod(mapperStatement);
-                mapperHolder.getMethodCache().put(method, mapperMethod);
+        //sql块的id在其mapper中有对应的方法才会设置
+        Method method = getMapperMethod(id);
+        if (method != null && !mapperHolder.getMethodCache().containsKey(method)) {
+            MapperStatement mapperStatement = new MapperStatement(id, parameterType, resultMap);
+            MapperMethod mapperMethod = new MapperMethod(mapperStatement);
+            //返回值类型绑定
+            //用建造模式,最终的组合和校验在build.build完成
+            String parseSql = mapperBuilderAssistant.parseSql(resultElement.getTextContent());
+            mapperStatement.setOrginSql(parseSql);
+            for (String orgSqlParameter : mapperBuilderAssistant.getOrgSqlParameter()) {
+                Class<?> propertyType = null;
+                //将字符串表示的参数类型解析成对应的Java类
+                mapperStatement.setParameterTypeClass(resolveAlias);
+                if (!StringUtils.isNullOrEmpty(parameterType)) {
+                    //分为基本类型和自定义类型两种情况
+                    if (typeHandlerRegistry.hasTypeHandler(resolveAlias)) {
+                        propertyType = resolveAlias;
+                    } else if (parameterType != null) {
+                        //实例化parameterType,判断是否有对应字段的getter方法
+                        MetaClass metaClass = MetaClass.forClass(resolveAlias);
+                        if (metaClass.hasGetter(orgSqlParameter)) {
+                            //propertyType类型为该字段在自定义类中的字段类型
+                            propertyType = metaClass.getGetterType(orgSqlParameter);
+                        } else {
+                            propertyType = Object.class;
+                        }
+                    }
+                } else {
+                    propertyType = Object.class;
+                }
 
-                //返回值类型绑定
-                //用建造模式,最终的组合和校验在build.build完成
-                String parseSql = mapperBuilderAssistant.parseSql(resultElement.getTextContent());
-                mapperStatement.setOrginSql(parseSql);
+                //ParameterMapping用于执行sql时对参数进行映射
+                ParameterMapping.Builder builder = new ParameterMapping.Builder(typeHandlerRegistry);
+                builder.javaType(propertyType);
+                mapperStatement.addParameterMapping(builder.build());
             }
+            mapperHolder.getMethodCache().put(method, mapperMethod);
+            mapperBuilderAssistant.resetOrgSqlParameter();
         }
     }
 
-
+    protected Method getMapperMethod(String methodName) {
+        Class<?> aClass = mapperHolder.getMapper(null).getClass();
+        for (Method method : aClass.getMethods()) {
+            if (method.getName().equals(methodName)) {
+                return method;
+            }
+        }
+        return null;
+    }
 }

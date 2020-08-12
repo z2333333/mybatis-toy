@@ -9,7 +9,7 @@ import java.sql.SQLException;
  * @author zx
  * @date 2020/8/6 11:26
  */
-public abstract class BaseTypeHandler<T> implements TypeHandler<T> {
+public abstract class BaseTypeHandler<T> extends TypeReference<T>  implements TypeHandler<T> {
 
     @Override
     public void setParameter(PreparedStatement ps, int i, T parameter, JdbcType jdbcType) throws SQLException {

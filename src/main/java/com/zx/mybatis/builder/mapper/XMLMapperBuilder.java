@@ -20,7 +20,7 @@ public class XMLMapperBuilder extends MapperBuilder{
                 continue;
             }
             MapperHolder mapperHolder = addMapper(mapperClass);
-            XMLMapperResolve xmlMapperResolve = new XMLMapperResolve(mapperClass.getSimpleName(),mapperHolder);
+            XMLMapperResolve xmlMapperResolve = new XMLMapperResolve(mapperClass.getSimpleName(),mapperHolder,getResult());
             xmlMapperResolve.doParse(mapperHolder);
         }
     }

@@ -1,7 +1,5 @@
 package com.zx.mybatis.builder;
 
-import cn.hutool.core.util.ObjectUtil;
-import com.zx.mybatis.Configuration;
 import com.zx.mybatis.builder.mapper.MapperDirector;
 import com.zx.mybatis.builder.mapper.XMLMapperBuilder;
 import org.w3c.dom.Element;
@@ -51,11 +49,7 @@ public class XMLConfigBuilder extends XMLResolveTemplate {
             }
 
             JdbcDriver jdbcDriver = new JdbcDriver(url,userName,passWord);
-            this.configuration.setJdbcDriver(jdbcDriver);
-        }
-
-        if (ObjectUtil.isEmpty(this.configuration.getJdbcDriver())) {
-            throw new RuntimeException("jdbc driver cannot be null");
+            this.configurationBuilder.jdbcDriver(jdbcDriver);
         }
     }
 
@@ -73,11 +67,5 @@ public class XMLConfigBuilder extends XMLResolveTemplate {
             mapperDirector.doBuilder();
 
         }
-    }
-
-    @Override
-    protected Configuration buildConfiguration() {
-        this.configuration.getJdbcDriver().iniDriver();
-        return configuration;
     }
 }

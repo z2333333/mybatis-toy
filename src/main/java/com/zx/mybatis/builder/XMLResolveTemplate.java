@@ -1,6 +1,7 @@
 package com.zx.mybatis.builder;
 
 import com.zx.mybatis.Configuration;
+import com.zx.mybatis.builder.mapper.IConfiguration;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -8,8 +9,8 @@ import org.w3c.dom.Element;
  * @author zx
  * @date 2020/6/1 11:20
  */
-public abstract class XMLResolveTemplate {
-    protected Configuration configuration =  new Configuration();
+public abstract class XMLResolveTemplate implements IConfiguration {
+    protected Configuration.Builder configurationBuilder =  new Configuration.Builder();
     protected XMLResolveAssistant xmlResolveAssistant = new XMLResolveAssistant();
     protected String xmlPath;
 
@@ -19,17 +20,14 @@ public abstract class XMLResolveTemplate {
 
     protected abstract void doMappers();
 
-    protected abstract Configuration buildConfiguration();
-
     public XMLResolveTemplate(String xmlPath) {
         this.xmlPath = xmlPath;
     }
 
-    public Configuration iniConfiguration() {
+    public void doBuild() {
         parseXml();
         doDateSource();
         doMappers();
-        return buildConfiguration();
     }
 
     public Document createDocument(String xmlPath) {
@@ -38,5 +36,10 @@ public abstract class XMLResolveTemplate {
 
     public Element getTargetElement(String name) {
         return xmlResolveAssistant.getTargetElementTop(name);
+    }
+
+    @Override
+    public Configuration getConfiguration() {
+        return configurationBuilder.build();
     }
 }

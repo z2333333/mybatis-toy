@@ -11,6 +11,6 @@ public class App
     public static void main( String[] args )
     {
         XMLConfigBuilder xmlConfigBuilder = new XMLConfigBuilder("mybatis-config.xml");
-        xmlConfigBuilder.iniConfiguration();
+        xmlConfigBuilder.doBuild();
     }
 }

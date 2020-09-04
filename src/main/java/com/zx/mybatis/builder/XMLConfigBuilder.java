@@ -25,6 +25,10 @@ public class XMLConfigBuilder extends XMLResolveTemplate {
     protected void doDateSource() {
         Element element = getTargetElement("environments");
         NodeList dataSourceElements = element.getElementsByTagName("dataSource");
+        //实际上mybatis把数据源DataSource分为三种(抽象工厂):
+        //UNPOOLED不使用连接池的数据源
+        //POOLED使用连接池的数据源
+        //JNDI使用JNDI实现的数据源
         if (dataSourceElements != null) {
             String url = "";
             String userName = "";

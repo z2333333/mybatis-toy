@@ -10,11 +10,14 @@ import java.util.logging.Logger;
 /**
  * @author zx
  * @date 2020/8/28 14:50
- * 代理模式
+ * 装饰模式
  */
-public class DataSourceExecutor implements DataSource {
+public class DataSourceDecorate implements DataSource {
     private DataSource dataSource;
 
+    public DataSourceDecorate(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
     @Override
     public Connection getConnection() throws SQLException {
         return dataSource.getConnection();

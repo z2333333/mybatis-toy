@@ -13,6 +13,7 @@ import java.util.logging.Logger;
  * 当dataSource标签的type属性被配置成了UNPOOLED时不使用连接池
  */
 public class UnPooledDataSource implements DataSource {
+
     @Override
     public Connection getConnection() throws SQLException {
         return null;

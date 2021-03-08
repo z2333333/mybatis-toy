@@ -8,6 +8,7 @@ import org.w3c.dom.Element;
 /**
  * @author zx
  * @date 2020/6/1 11:20
+ * 模式
  */
 public abstract class XMLResolveTemplate implements IConfiguration {
     protected Configuration.Builder configurationBuilder =  new Configuration.Builder();

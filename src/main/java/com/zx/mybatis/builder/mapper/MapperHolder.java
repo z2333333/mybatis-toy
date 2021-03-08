@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Mapper持有器:对应xml文件级别
  */
 public class MapperHolder {
+    //测试git连接
     private final String mapperId;
     /** 被代理的mapper对象 **/
     private Object mapperProxy;
